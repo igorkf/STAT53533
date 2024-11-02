@@ -130,6 +130,15 @@ The ELOV for different $k$'s are:
 We can adopt $k = 10$ to obtain $ELOV = 0.1974012 \le 0.2$.  
 
 ### c)
+The images chosen were: 
+
+```{r, echo = F}
+library(OpenImageR)
+s1 <- readImage("Faceimage_data/yalefaces_test/subject11_happy.jpeg")[, , 1]
+image(t(s1[243:1, ]), col = grey(seq(0, 1, length = 256)), main = "yalefaces_test/subject11_happy.jpeg")
+s2 <- readImage("Faceimage_data/yalefaces_test/subject15_happy.jpeg")[, , 1]
+image(t(s2[243:1, ]), col = grey(seq(0, 1, length = 256)), main = "yalefaces_test/subject15_happy.jpeg")
+```
 
 ### d)
 
@@ -168,10 +177,33 @@ for (i in 1:n) {
 BtB <- t(B) %*% B
 eigen_results <- eigen(BtB)
 sum_eigen <- sum(diag(BtB))
-ELOV <- array(0, )
-for (k in 1:n) {
-  ELOV[k] <- 1 - sum(eigen_results$values[1:k]) / sum_eigen
+ELOV <- array(0, n)
+for (j in 1:n) {
+  ELOV[j] <- 1 - sum(eigen_results$values[1:j]) / sum_eigen
 }
+k <- 10
 # knitr::kable(data.frame(k = 1:n, ELOV = round(ELOV, 10)), format = "markdown")
 ```
+
+```{r}
+# c)
+test_img_names <- c("subject11_happy.jpeg", "subject15_happy.jpeg")
+test_path <- "Faceimage_data/yalefaces_test/"
+x11()
+s1 <- readImage(paste0(test_path, test_img_names[1]))[, , 1]
+image(t(s1[243:1, ]), col = grey(seq(0, 1, length = 256)),
+      main = "yalefaces_test/subject11_happy.jpeg")
+x11()
+s2 <- readImage(paste0(test_path, test_img_names[2]))[, , 1]
+image(t(s2[243:1, ]), col = grey(seq(0, 1, length = 256)), 
+      main = "yalefaces_test/subject15_happy.jpeg")
+
+```
+
+```{r}
+# d)
+eigen_kvalues <- eigen_results$values[1:k]
+eigen_kvectors <- eigen_results$vectors[, 1:k]
+```
+
 
