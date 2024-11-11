@@ -1,0 +1,44 @@
+---
+title: "Igor Kuivjogi Fernandes"
+subtitle: "Assignment 2"
+# date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Part A (Answers)
+
+### a)
+  
+
+### b)
+
+#### i)
+
+#### ii)
+
+#### iii)
+
+
+### c)
+
+#### i)
+
+#### ii)
+
+#### iii)
+
+#### iv)
+
+
+### d)
+
+
+# Part B (code)
+
+```{r}
+tab <- read.table("Gasoline_data.txt", header = T)
+```
