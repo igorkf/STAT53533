@@ -12,26 +12,37 @@ knitr::opts_chunk$set(echo = TRUE)
 # Part A (Answers)
 
 ### a)
+
+We cannot use OLS because $n < p + 1$ since we have $n = 59$ and $p = 401$.
   
 
 ### b)
 
-#### i)
+  i) We can use $k = 3$, which has an $ELOV \approx 0.094 < 0.1$.   
 
-#### ii)
+  ii) The estimated regression coefficients using PCR are:
+  
+  $$
+  \hat{\beta}_{PCR} = \begin{bmatrix}
+  74.998210 & \\
+  3.561853 & \\
+  3.840043 & \\
+  9.991221 &
+  \end{bmatrix}
+  $$
 
-#### iii)
+  iii) $R^2 = 0.3290326$.
 
 
 ### c)
 
-#### i)
+  i)
 
-#### ii)
+  ii)
 
-#### iii)
+  iii)
 
-#### iv)
+  iv)
 
 
 ### d)
@@ -40,5 +51,56 @@ knitr::opts_chunk$set(echo = TRUE)
 # Part B (code)
 
 ```{r}
-tab <- read.table("Gasoline_data.txt", header = T)
+# a)
+gasoline <- read.table("Gasoline_data.txt", header = T)
+X <- as.matrix(gasoline[-4, -1])
+y <- as.matrix(gasoline[-4, 1])
+Xnew <- as.matrix(gasoline[4, -1])
+ynew <- gasoline[4, 1]
+n <- nrow(X)
+p <- ncol(X)
 ```
+
+
+```{r}
+# b)
+mu_hat <- colMeans(X)
+B <- matrix(0, p, n)
+for (i in 1:n) {
+  B[, i] <- X[i, ] - mu_hat
+}
+# same as B <- apply(X, 1, function(x_i) x_i - mu_hat)
+BtB <- t(B) %*% B
+eigen_results <- eigen(BtB)
+sum_eigen <- sum(diag(BtB))
+
+# i)
+ELOV <- array(0, n)
+for (j in 1:n) {
+  ELOV[j] <- 1 - sum(eigen_results$values[1:j]) / sum_eigen
+}
+k <- 3
+
+# ii)
+eigen_kvalues <- eigen_results$values[1:k]
+eigen_kvectors <- eigen_results$vectors[, 1:k]
+eigen_vectors_Sigma_hat_k <- matrix(0, p, k)
+for (i in 1:k) {
+  eigen_vectors_Sigma_hat_k[, i] <- c(1 / sqrt(eigen_kvalues[i])) * 
+    (B %*% matrix(eigen_kvectors[, i]))
+}
+Ak_hat <- t(eigen_vectors_Sigma_hat_k)
+Z <- Ak_hat %*% (t(X - mu_hat))
+Z_D <- t(Z)
+intercept <- matrix(1, nrow = n)
+rhs <- cbind(intercept, Z_D)
+beta_hat_pcr <- solve(t(rhs) %*% rhs) %*% t(rhs) %*% y
+
+# iii)
+yhat_pcr <- rhs %*% beta_hat_pcr
+mean_y <- mean(y)
+SSR <- sum((yhat_pcr - mean_y) ^ 2)
+SST <- sum((y - mean_y) ^ 2)
+R2_pcr <- SSR / SST
+```
+
