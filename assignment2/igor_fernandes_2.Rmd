@@ -65,12 +65,17 @@ We cannot use OLS because $n < p + 1$ since we have $n = 59$ and $p = 401$.
   $$
 
   iv) The estimated regression coefficient of $x_{(0) 45}$ in the simple linear regression of the first PLS predictor is $\hat{R}_{45, 1} = -0.009087964$. The estimated coefficient of $x_{(1) 260}$ in the expression of second PLS predictor is $\hat{R}_{260, 2} = -0.01134443$.   
-  
-  # iv)
 
 
 ### d)
 
+True observed value: $y = 83.4$
+
+Predicted value using PCR: $\hat{y}_{PCR} = 85.1815$
+
+Predicted value using PLSR1: $\hat{y}_{PLS1} = 83.67244$
+
+The prediction from PLS1 was closer to the true observed value.   
 
 # Part B (code)
 
@@ -79,8 +84,6 @@ We cannot use OLS because $n < p + 1$ since we have $n = 59$ and $p = 401$.
 gasoline <- read.table("Gasoline_data.txt", header = T)
 X <- as.matrix(gasoline[-4, -1])
 y <- as.matrix(gasoline[-4, 1])
-Xnew <- as.matrix(gasoline[4, -1])
-ynew <- gasoline[4, 1]
 n <- nrow(X)
 p <- ncol(X)
 ```
@@ -154,8 +157,8 @@ estimate_Sigma_XY <- function(X_dummy, y_dummy) {
 for (step in 1:k) {
   Sigma_XY_hat <- estimate_Sigma_XY(X_temp, y_temp)
   b_hat <- Sigma_XY_hat / sqrt(sum(Sigma_XY_hat ^ 2))
-  max_squared_cov <- sum(b_hat * Sigma_XY_hat)
-  cat("Step 1", step, "\n")
+  max_squared_cov <- t(b_hat) %*% Sigma_XY_hat
+  cat("Step ", step, "\n")
   cat(paste0("Maximum (Cov[b'X_temp, y_temp])^2 = ", round(max_squared_cov, 4)), "\n")
   t_predictor <- X_temp %*% b_hat
   r_hat <- array(0, p)
@@ -175,10 +178,32 @@ for (step in 1:k) {
 }
 
 # iii)
-# yhat = ybar + q_hat' %*% t
+# y_hat = y_bar + q1_hat * t_1 + ... + q3_hat * t_3
 
 # iv)
 R_hat[45, 1]  # X(0),45: first step, 45-th covariate
 R_hat[260, 2]  # X(1),260: second step, 260-th covariate
+```
+
+```{r}
+# d)
+X_new <- as.matrix(gasoline[4, -1])
+y_new <- gasoline[4, 1]
+
+# PCR
+PC_scores_new <- Ak_hat %*% (matrix(X_new - mu_hat, ncol = 1))
+y_pred_new_pcr <- beta_hat_pcr[1] + beta_hat_pcr[-1, ] %*% PC_scores_new
+
+# PLS1
+X_temp_new <- array(0, p)
+for (j in 1:p) X_temp_new[j] <- X_new[j] - mu_Xhat[j]
+t_predictor_new <- array(0, k)
+for (step in 1:k) {
+  t_predictor_new[step] <- B_hat[, step] %*% X_temp_new  # b_(i)^T X_(i-1)
+  for (j in 1:p) {
+    X_temp_new[j] <- X_temp_new[j] - (R_hat[j,step] * t_predictor_new[step])
+  }
+}
+y_pred_new_pls <- mu_yhat + t(q_hat) %*% t_predictor_new
 ```
 
