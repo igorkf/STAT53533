@@ -36,9 +36,27 @@ We cannot use OLS because $n < p + 1$ since we have $n = 59$ and $p = 401$.
 
 ### c)
 
-  i)
+  i) For each step:   
+  
+      Step 1:    
+      Maximum $(Cov[b_1^TX_{(0)}, y_{(0)}])^2 \approx 0.1385$ 
 
-  ii)
+      Step 2:    
+      Maximum $(Cov[b_2^TX_{(1)}, y_{(1)}])^2 \approx 0.0795$ 
+
+      Step 3:    
+      Maximum $(Cov[b_3^TX_{(2)}, y_{(2)}])^2 \approx 0.0188$  
+
+  ii) For each step:   
+  
+      Step 1:   
+      $R^2 \approx 0.2903$
+  
+      Step 2:   
+      $R^2 \approx 0.9411$
+  
+      Step 3:   
+      $R^2 \approx 0.9743$
 
   iii)
 
@@ -90,12 +108,12 @@ for (i in 1:k) {
     (B %*% matrix(eigen_kvectors[, i]))
 }
 Ak_hat <- t(eigen_vectors_Sigma_hat_k)
-Z <- matrix(0, n, k)
+Z_data <- matrix(0, n, k)
 for (i in 1:n) {
-  Z[i, ] <- Ak_hat %*% (X[i, ] - mu_hat)
+  Z_data[i, ] <- Ak_hat %*% (X[i, ] - mu_hat)
 }
 intercept <- matrix(1, nrow = n)
-rhs <- cbind(intercept, Z)
+rhs <- cbind(intercept, Z_data)
 beta_hat_pcr <- solve(t(rhs) %*% rhs) %*% t(rhs) %*% y
 
 # iii)
@@ -104,5 +122,50 @@ mean_y <- mean(y)
 SSR <- sum((yhat_pcr - mean_y) ^ 2)
 SST <- sum((y - mean_y) ^ 2)
 R2_pcr <- SSR / SST
+```
+
+
+```{r, eval = F}
+# c)
+# items i) and ii)
+step <- 0
+mu_Xhat <- colMeans(X)
+mu_yhat <- mean(y)
+TSS <- sum((y - mu_yhat) ^ 2)
+y_temp <- y - mu_yhat
+X_temp <- matrix(0, n, p)
+for (j in 1:p) X_temp[ ,j] <- X[ ,j] - mu_Xhat[j]
+B_hat <- matrix(0, p, k)
+R_hat <- matrix(0, p, k)
+q_hat <- matrix(0, k, 1)
+
+estimate_Sigma_XY <- function(X_dummy, y_dummy) {
+  # returns a X x Y matrix (in this case, p x 1)
+  c(1 / (n - 1)) * ((t(X_dummy) - colMeans(X_dummy)) %*% (y_dummy - mean(y_dummy)))
+}
+
+# run k steps of PLS1 algorithm
+for (step in 1:k) {
+  Sigma_XY_hat <- estimate_Sigma_XY(X_temp, y_temp)
+  b_hat <- Sigma_XY_hat / sqrt(sum(Sigma_XY_hat ^ 2))
+  max_squared_cov <- sum(b_hat * Sigma_XY_hat)
+  cat("Step 1", step, "\n")
+  cat(paste0("Maximum (Cov[b'X_temp, y_temp])^2 = ", round(max_squared_cov, 4)), "\n")
+  t_predictor <- X_temp %*% b_hat
+  r_hat <- array(0, p)
+  for (j in 1:p) {
+    out <- lm(X_temp[ ,j] ~ 0 + t_predictor)  # no intercept
+    r_hat[j] <- out$coefficients
+    X_temp[ ,j] <- out$residuals  # update the j-th column of X_temp using residual
+  }
+  out <- lm(y_temp ~ 0 + t_predictor)  # no intercept
+  q_hat_value <- out$coefficients
+  y_temp <- out$residuals
+  R2_pls <- 1 - (sum(y_temp ^ 2) / TSS)
+  cat(paste0("R2 = ", round(R2_pls, 4), "\n\n"))
+  B_hat[ , step] <- b_hat
+  R_hat[ , step] <- r_hat
+  q_hat[step] <- q_hat_value
+}
 ```
 
