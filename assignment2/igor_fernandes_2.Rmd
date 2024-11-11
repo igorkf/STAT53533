@@ -24,14 +24,14 @@ We cannot use OLS because $n < p + 1$ since we have $n = 59$ and $p = 401$.
   
   $$
   \hat{\beta}_{PCR} = \begin{bmatrix}
-  74.998210 & \\
-  3.561853 & \\
-  3.840043 & \\
-  9.991221 &
+  87.241525 & \\
+  2.741935 & \\
+  -2.120626 & \\
+  10.388374 &
   \end{bmatrix}
   $$
 
-  iii) $R^2 = 0.3290326$.
+  iii) $R^2 = 0.3725311$.
 
 
 ### c)
@@ -90,10 +90,12 @@ for (i in 1:k) {
     (B %*% matrix(eigen_kvectors[, i]))
 }
 Ak_hat <- t(eigen_vectors_Sigma_hat_k)
-Z <- Ak_hat %*% (t(X - mu_hat))
-Z_D <- t(Z)
+Z <- matrix(0, n, k)
+for (i in 1:n) {
+  Z[i, ] <- Ak_hat %*% (X[i, ] - mu_hat)
+}
 intercept <- matrix(1, nrow = n)
-rhs <- cbind(intercept, Z_D)
+rhs <- cbind(intercept, Z)
 beta_hat_pcr <- solve(t(rhs) %*% rhs) %*% t(rhs) %*% y
 
 # iii)
