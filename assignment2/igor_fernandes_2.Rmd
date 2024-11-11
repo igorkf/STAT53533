@@ -58,9 +58,15 @@ We cannot use OLS because $n < p + 1$ since we have $n = 59$ and $p = 401$.
       Step 3:   
       $R^2 \approx 0.9743$
 
-  iii)
+  iii) The equation for PLS1 is:   
+  
+  $$
+  \hat{y} = \bar{y} + \hat{q}^T t = 87.24153 + 4.468704 t_1 17.439535 t_2 + 3.766971 t_3
+  $$
 
-  iv)
+  iv) The estimated regression coefficient of $x_{(0) 45}$ in the simple linear regression of the first PLS predictor is $\hat{R}_{45, 1} = -0.009087964$. The estimated coefficient of $x_{(1) 260}$ in the expression of second PLS predictor is $\hat{R}_{260, 2} = -0.01134443$.   
+  
+  # iv)
 
 
 ### d)
@@ -125,9 +131,9 @@ R2_pcr <- SSR / SST
 ```
 
 
-```{r, eval = F}
+```{r, results = 'hide'}
 # c)
-# items i) and ii)
+# i) and ii)
 step <- 0
 mu_Xhat <- colMeans(X)
 mu_yhat <- mean(y)
@@ -167,5 +173,12 @@ for (step in 1:k) {
   R_hat[ , step] <- r_hat
   q_hat[step] <- q_hat_value
 }
+
+# iii)
+# yhat = ybar + q_hat' %*% t
+
+# iv)
+R_hat[45, 1]  # X(0),45: first step, 45-th covariate
+R_hat[260, 2]  # X(1),260: second step, 260-th covariate
 ```
 
