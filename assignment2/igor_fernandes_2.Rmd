@@ -61,7 +61,7 @@ We cannot use OLS because $n < p + 1$ since we have $n = 59$ and $p = 401$.
   iii) The equation for PLS1 is:   
   
   $$
-  \hat{y} = \bar{y} + \hat{q}^T t = 87.24153 + 4.468704 t_1 17.439535 t_2 + 3.766971 t_3
+  \hat{y} = \bar{y} + \hat{q}^T t = 87.24153 + 4.468704 t_1 + 17.439535 t_2 + 3.766971 t_3
   $$
 
   iv) The estimated regression coefficient of $x_{(0) 45}$ in the simple linear regression of the first PLS predictor is $\hat{R}_{45, 1} = -0.009087964$. The estimated coefficient of $x_{(1) 260}$ in the expression of second PLS predictor is $\hat{R}_{260, 2} = -0.01134443$.   
