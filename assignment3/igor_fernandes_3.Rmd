@@ -1,0 +1,124 @@
+---
+title: "Igor Kuivjogi Fernandes"
+subtitle: "Assignment 3"
+# date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Part A (Answers)
+
+## i) 
+
+$n = 33$ and $p = 1200$.   
+
+## ii)
+
+| Simulated data: summary| Actual_data|
+|-----------------------:|-----------:|
+|                  50.754|     541.154|
+|                  48.923|     146.995|
+|                  47.647|      92.439|
+|                  46.576|      83.786|
+|                  45.637|      46.546|
+|                  44.827|      35.040|
+|                  44.006|      30.305|
+|                  43.222|      26.793|
+|                  42.506|      20.770|
+|                  41.819|      18.052|
+|                  41.164|      16.227|
+|                  40.487|      11.853|
+|                  39.900|      10.903|
+|                  39.294|      10.630|
+|                  38.645|       9.967|
+|                  38.039|       8.989|
+|                  37.462|       8.864|
+|                  36.880|       8.419|
+|                  36.281|       7.909|
+|                  35.711|       7.236|
+|                  35.121|       6.831|
+|                  34.537|       6.318|
+|                  33.950|       5.980|
+|                  33.415|       5.548|
+|                  32.789|       5.070|
+|                  32.204|       4.956|
+|                  31.621|       4.527|
+|                  31.011|       4.318|
+|                  30.346|       3.970|
+|                  29.665|       3.485|
+|                  28.939|       3.368|
+|                  28.062|       2.753|
+|                   0.000|       0.000|
+
+As summary of simulated eigenvalues becomes larger than the eigenvalues from the data at the $6^{th}$ row, we should choose $k = 5$ factors.   
+
+## iii)
+
+  a)   
+  
+  b)    
+  
+  c)    
+  
+## iv)
+
+## v)
+
+
+# Part B (code)
+
+```{r}
+# i)
+tab <- as.matrix(read.table("Factor_application_data.txt", header = F))
+n <- nrow(tab)
+p <- ncol(tab)
+```
+
+
+```{r, results = 'hide'}
+for (i in 1:p) tab[ , i] <- (tab[,i] - mean(tab[, i])) / sd(tab[, i])
+
+B <- matrix(0, p, n)
+for (i in 1:n) B[, i] <- tab[i, ] - 0  # data is already standardized
+
+if (n < p) {
+  B_transpose_B <- t(B) %*% B
+  eigenvalues_data <- eigen(B_transpose_B, only.values = T)$values / (n - 1)
+} else {
+  B_B_transpose <- B%*%t(B)
+  eigenvalues_data <- eigen(B_B_transpose, only.values = T)$values / (n - 1)
+}
+
+# parallel analysis
+sim_no <- 2000
+eigenvalue_store <- matrix(0, min(n, p), sim_no)
+set.seed(123)
+for (j in 1:sim_no) {
+  data_sim <- matrix(rnorm(n * p), n, p)
+  for (i in 1:p) data_sim[ ,i] <- (data_sim[,i] - mean(data_sim[, i])) / sd(data_sim[, i])
+  B <- matrix(0, p, n)
+  for (i in 1:n) {
+    B[,i] <- data_sim[i, ] - 0  # already standardized
+  }
+  if (n < p) {
+    B_transpose_B <- t(B) %*% B
+    eigenvalues_sim <- eigen(B_transpose_B, only.values = T)$values / (n - 1)
+  } else {
+    B_B_transpose <- B%*%t(B)
+    eigenvalues_sim <- eigen(B_B_transpose, only.values = T)$values / (n - 1)
+  }
+  eigenvalue_store[, j] <- eigenvalues_sim
+}
+
+quantile_choice <- 0.95
+summary_simulation <- apply(eigenvalue_store, 1, quantile, p = quantile_choice)
+## if mean is used
+# summary_simulation <- apply(eigenvalue_store, 1, mean)
+show_comparison <- cbind(summary_simulation, eigenvalues_data)
+colnames(show_comparison) <- c("Simulated data: summary", "Actual_data")
+# knitr::kable(round(show_comparison, 3), format = "markdown")
+k <- which(show_comparison[, 1] > show_comparison[, 2])[1] - 1
+```
