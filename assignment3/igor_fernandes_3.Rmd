@@ -88,7 +88,7 @@ if (n < p) {
   B_transpose_B <- t(B) %*% B
   eigenvalues_data <- eigen(B_transpose_B, only.values = T)$values / (n - 1)
 } else {
-  B_B_transpose <- B%*%t(B)
+  B_B_transpose <- B %*% t(B)
   eigenvalues_data <- eigen(B_B_transpose, only.values = T)$values / (n - 1)
 }
 
@@ -107,7 +107,7 @@ for (j in 1:sim_no) {
     B_transpose_B <- t(B) %*% B
     eigenvalues_sim <- eigen(B_transpose_B, only.values = T)$values / (n - 1)
   } else {
-    B_B_transpose <- B%*%t(B)
+    B_B_transpose <- B %*%t (B)
     eigenvalues_sim <- eigen(B_B_transpose, only.values = T)$values / (n - 1)
   }
   eigenvalue_store[, j] <- eigenvalues_sim
