@@ -59,14 +59,51 @@ As summary of simulated eigenvalues becomes larger than the eigenvalues from the
 
   a)   
   
+  |               |        |
+  |:--------------|-------:|
+  |var_L2_initial |   0.062|
+  |var_L2         |   0.180|
+  |ratio          |   2.907|
+  
   b)    
+  
+  |                      |     1|     2|     3|     4|     5|
+  |:---------------------|-----:|-----:|-----:|-----:|-----:|
+  |var_L2_initial_factor | 0.028| 0.017| 0.009| 0.006| 0.003|
+  |var_L2_factor         | 0.034| 0.058| 0.017| 0.058| 0.013|
+  |ratio_factor          | 1.241| 3.345| 1.987| 9.962| 4.873|
   
   c)    
   
+  The fourth factor showed the maximum improvement due to varimax, whereas the first factor showed the minimum improvement.
+  
+  
 ## iv)
+
+How many variables have at most 30% variability explained by factors: $5$ variables.
+
+The variable which is worst explained by the factors: $684^{th}$ variable.
+
+Communality of $236^{th}$ variable: $\approx 0.6933$.
+
+Proportion of overall variability explained by $2^{nd}$ factor: $\approx 0.1844$.
+
+Correlation between $23^{rd}$ and $317^{th}$ variables: $\approx 0.50$.
+
+Specific variance of $840^{th}$ variable: $\approx 0.2964$.
+
 
 ## v)
 
+$$
+\hat{f}^{(16)} = \begin{bmatrix}
+  -0.42722879 \\
+  -0.09308803 \\
+  1.77837205 \\
+  -0.58302362 \\
+  0.49855498 \\
+\end{bmatrix}
+$$
 
 # Part B (code)
 
@@ -79,6 +116,7 @@ p <- ncol(tab)
 
 
 ```{r, results = 'hide'}
+# ii)
 for (i in 1:p) tab[ , i] <- (tab[,i] - mean(tab[, i])) / sd(tab[, i])
 
 B <- matrix(0, p, n)
@@ -122,3 +160,74 @@ colnames(show_comparison) <- c("Simulated data: summary", "Actual_data")
 # knitr::kable(round(show_comparison, 3), format = "markdown")
 k <- which(show_comparison[, 1] > show_comparison[, 2])[1] - 1
 ```
+
+
+```{r, results = 'hide'}
+# iii)
+B <- matrix(0, p, n)
+for (i in 1:n) B[, i] <- tab[i, ] - 0 # data is already standardized
+if (n < p) {
+  B_transpose_B <- t(B) %*% B
+  eigen_results <- eigen(B_transpose_B)
+  eigen_kvalues <- eigen_results$values[1:k]
+  eigen_kvectors <- eigen_results$vectors[, 1:k]
+  eigvec_Sigma_hat_k <- matrix(0, p, k)
+  for (i in 1:k) {
+    eigvec_Sigma_hat_k[ ,i] = c(1 / sqrt(eigen_kvalues[i])) * 
+      (B %*% matrix(eigen_kvectors[, i], ncol = 1))
+  }
+  eigval_Sigma_hat_k <- eigen_kvalues / (n - 1)
+} else {
+  B_B_transpose <- B% *% t(B)
+  eigen_results <- eigen(B_B_transpose)
+  eigvec_Sigma_hat_k <- eigen_results$vectors[, 1:k]
+  eigval_Sigma_hat_k <- eigen_results$values[1:k] / (n - 1)
+}
+
+L_initial <- eigvec_Sigma_hat_k %*% diag(sqrt(eigval_Sigma_hat_k))
+L <- varimax(L_initial, normalize = F)$loadings
+# print(L, cutoff = 0.01)
+
+# a)
+var_L2_initial <- sum(apply(L_initial ^ 2, 2, var))
+var_L2 <- sum(apply(L ^ 2, 2, var))
+ratio <- var_L2 / var_L2_initial
+var_comparison <- rbind(var_L2_initial, var_L2, ratio)
+# knitr::kable(round(var_comparison, 3), format = "markdown")  # almost 3x
+
+# b)
+var_L2_initial_factor <- apply(L_initial ^ 2, 2, var)
+var_L2_factor <- apply(L ^ 2, 2, var)
+ratio_factor <- var_L2_factor / var_L2_initial_factor
+var_comparison_factor <- rbind(var_L2_initial_factor, var_L2_factor, ratio_factor)
+colnames(var_comparison_factor) <- 1:5
+# knitr::kable(round(var_comparison_factor, 3), format = "markdown")
+
+# c)
+which.max(ratio_factor)
+which.min(ratio_factor)
+```
+
+
+```{r, results = 'hide'}
+# iv) 
+sum_squares_row <- apply(L ^ 2, 1, sum)
+length(which(sum_squares_row <= 0.3))  # 5
+which.min(sum_squares_row)  # 684
+sum_squares_row[236]  # 0.6933
+
+sum_squares_col <- apply(L ^ 2, 2, sum)
+sum_squares_col[2] / p  # 0.184456
+L[23, ] %*% L[317, ]  # 0.50
+1 - sum_squares_row[840]  # 0.2964
+```
+
+
+```{r, results = 'hide'}
+# v)
+D <- diag(1 - sum_squares_row)
+Dinv <- diag(1 / diag(D))
+LtDinv <- t(L) %*% Dinv
+fhat_16 <- solve(LtDinv %*% L) %*% LtDinv %*% matrix(tab[16, ], ncol = 1)
+```
+
